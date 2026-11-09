@@ -1,0 +1,5 @@
+sermão "Exemplo simples de exibição de cálculo de área"
+guarde base = 5.0 : fração !
+guarde altura = 2.5 : fração !
+guarde area = base * altura : fração !
+exibir("A área é: ", area) !

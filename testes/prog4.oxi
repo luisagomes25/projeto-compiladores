@@ -1,0 +1,9 @@
+sermão "Este programa calcula a média e verifica a aprovação"
+guarde nota1 = 7.5 : fração !
+guarde nota2 = 8.0 : fração !
+guarde media = (nota1 + nota2) / 2 : fração !
+testar (media >= 7.0) abrir
+  exibir("Aluno aprovado com media: ", media) !
+fechar senão abrir
+  exibir("Aluno reprovado.") !
+fechar

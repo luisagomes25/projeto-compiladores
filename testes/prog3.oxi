@@ -1,0 +1,5 @@
+guarde cont = 1 : total !
+repetir (cont <= 5) abrir
+  exibir(cont) !
+  guarde cont = cont + 1 : total !
+fechar
