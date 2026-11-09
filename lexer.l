@@ -1,6 +1,6 @@
 %{
 #include <stdio.h>
-/* O Caio vai incluir o parser.tab.h aqui depois */
+#include "parser.tab.h"
 %}
 
 %option noyywrap
@@ -53,18 +53,3 @@
 .                       { printf("ERRO LEXICO na linha %d: Caracter invalido '%s'\n", yylineno, yytext); }
 
 %%
-
-int main(int argc, char **argv) {
-    if (argc > 1) {
-        FILE *file = fopen(argv[1], "r");
-        if (!file) {
-            printf("Erro ao abrir o arquivo %s\n", argv[1]);
-            return 1;
-        }
-        yyin = file;
-    }
-    printf("--- Iniciando Analise Lexica ---\n");
-    yylex();
-    printf("--- Analise Concluida ---\n");
-    return 0;
-}
