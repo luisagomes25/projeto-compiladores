@@ -1,46 +1,66 @@
 #include "ast.h"
+#include <cmath>
 
-// --- Lógica de Expressões ---
-
-NoLiteral::NoLiteral(double v) : valor(v) {}
-double NoLiteral::avaliar(TabelaSimbolos& tabela) {
-    return valor;
+namespace {
+double numero(const ValorTipado& v) {
+    if (std::holds_alternative<int>(v.valor)) return std::get<int>(v.valor);
+    if (std::holds_alternative<double>(v.valor)) return std::get<double>(v.valor);
+    throw std::runtime_error("Operação numérica exige valor numérico.");
+}
+struct SinalParar {};
+struct SinalPular {};
+bool numerico(const ValorTipado& v) { return std::holds_alternative<int>(v.valor) || std::holds_alternative<double>(v.valor); }
+ValorTipado resultado_numerico(double v, bool fracao) {
+    return fracao ? ValorTipado{TipoDado::Fracao, v} : ValorTipado{TipoDado::Total, static_cast<int>(v)};
+}
+void exigir_sinal(const ValorTipado& v) { if (!std::holds_alternative<bool>(v.valor)) throw std::runtime_error("A condição exige um valor do tipo sinal."); }
 }
 
-NoVariavel::NoVariavel(std::string n) : nome(n) {}
-double NoVariavel::avaliar(TabelaSimbolos& tabela) {
-    if (tabela.variaveis.find(nome) == tabela.variaveis.end()) {
-        throw std::runtime_error("Erro fatal: Variavel '" + nome + "' nao declarada.");
-    }
-    return tabela.variaveis[nome];
+std::string valor_para_string(const ValorTipado& v) {
+    if (std::holds_alternative<int>(v.valor)) return std::to_string(std::get<int>(v.valor));
+    if (std::holds_alternative<double>(v.valor)) { std::string s = std::to_string(std::get<double>(v.valor)); while (s.back() == '0') s.pop_back(); if (s.back() == '.') s.pop_back(); return s; }
+    if (std::holds_alternative<bool>(v.valor)) return std::get<bool>(v.valor) ? "fiel" : "fatal";
+    return std::get<std::string>(v.valor);
+}
+bool valor_verdadeiro(const ValorTipado& v) { exigir_sinal(v); return std::get<bool>(v.valor); }
+bool valor_compativel(TipoDado destino, const ValorTipado& v) {
+    if (destino == TipoDado::Fracao && (v.tipo == TipoDado::Total || v.tipo == TipoDado::Fracao)) return true;
+    return destino == v.tipo;
+}
+ValorTipado converter_valor(TipoDado destino, const ValorTipado& v) {
+    if (!valor_compativel(destino, v)) throw std::runtime_error("Tipos incompatíveis na atribuição.");
+    if (destino == TipoDado::Fracao && v.tipo == TipoDado::Total) return {destino, static_cast<double>(std::get<int>(v.valor))};
+    return {destino, v.valor};
 }
 
-NoSoma::NoSoma(NoExpressao* e, NoExpressao* d) : esq(e), dir(d) {}
-NoSoma::~NoSoma() { delete esq; delete dir; }
-double NoSoma::avaliar(TabelaSimbolos& tabela) {
-    return esq->avaliar(tabela) + dir->avaliar(tabela);
-}
+bool TabelaSimbolos::existe(const std::string& n) const { return variaveis.find(n) != variaveis.end(); }
+const ValorTipado& TabelaSimbolos::obter(const std::string& n) const { auto i = variaveis.find(n); if (i == variaveis.end()) throw std::runtime_error("Variável '" + n + "' não declarada."); return i->second; }
+void TabelaSimbolos::definir(const std::string& n, TipoDado tipo, const ValorTipado& v) { if (existe(n)) throw std::runtime_error("Variável '" + n + "' já declarada."); variaveis[n] = converter_valor(tipo, v); }
+void TabelaSimbolos::atribuir(const std::string& n, const ValorTipado& v) { auto i = variaveis.find(n); if (i == variaveis.end()) throw std::runtime_error("Variável '" + n + "' não declarada."); i->second = converter_valor(i->second.tipo, v); }
 
-NoMultiplicacao::NoMultiplicacao(NoExpressao* e, NoExpressao* d) : esq(e), dir(d) {}
-NoMultiplicacao::~NoMultiplicacao() { delete esq; delete dir; }
-double NoMultiplicacao::avaliar(TabelaSimbolos& tabela) {
-    return esq->avaliar(tabela) * dir->avaliar(tabela);
-}
+NoLiteral::NoLiteral(const ValorTipado& v) : valor(v) {} ValorTipado NoLiteral::avaliar(TabelaSimbolos&) { return valor; }
+NoVariavel::NoVariavel(const std::string& n) : nome(n) {} ValorTipado NoVariavel::avaliar(TabelaSimbolos& t) { return t.obter(nome); }
 
-// --- Lógica de Comandos ---
+#define BIN_IMPL(NOME, OP) \
+NOME::NOME(NoExpressao* e, NoExpressao* d) : esq(e), dir(d) {} \
+NOME::~NOME() { delete esq; delete dir; }
 
-NoGuarde::NoGuarde(std::string n, NoExpressao* expr) : nome(n), expressao(expr) {}
-NoGuarde::~NoGuarde() { delete expressao; }
-void NoGuarde::executar(TabelaSimbolos& tabela) {
-    // Avalia a expressão e salva o resultado no std::map do Gabriel
-    double valor_avaliado = expressao->avaliar(tabela);
-    tabela.variaveis[nome] = valor_avaliado;
-}
+BIN_IMPL(NoSoma, +) ValorTipado NoSoma::avaliar(TabelaSimbolos& t) { auto a=esq->avaliar(t), b=dir->avaliar(t); if (a.tipo==TipoDado::Textao && b.tipo==TipoDado::Textao) return {TipoDado::Textao, std::get<std::string>(a.valor)+std::get<std::string>(b.valor)}; if (!numerico(a)||!numerico(b)) throw std::runtime_error("Soma exige números ou dois textões."); return resultado_numerico(numero(a)+numero(b), a.tipo==TipoDado::Fracao||b.tipo==TipoDado::Fracao); }
+BIN_IMPL(NoSubtracao, -) ValorTipado NoSubtracao::avaliar(TabelaSimbolos& t) { auto a=esq->avaliar(t), b=dir->avaliar(t); if (!numerico(a)||!numerico(b)) throw std::runtime_error("Subtração exige números."); return resultado_numerico(numero(a)-numero(b), a.tipo==TipoDado::Fracao||b.tipo==TipoDado::Fracao); }
+BIN_IMPL(NoMultiplicacao, *) ValorTipado NoMultiplicacao::avaliar(TabelaSimbolos& t) { auto a=esq->avaliar(t), b=dir->avaliar(t); if (!numerico(a)||!numerico(b)) throw std::runtime_error("Multiplicação exige números."); return resultado_numerico(numero(a)*numero(b), a.tipo==TipoDado::Fracao||b.tipo==TipoDado::Fracao); }
+BIN_IMPL(NoDivisao, /) ValorTipado NoDivisao::avaliar(TabelaSimbolos& t) { auto a=esq->avaliar(t), b=dir->avaliar(t); if (!numerico(a)||!numerico(b)||numero(b)==0) throw std::runtime_error("Divisão inválida."); return {TipoDado::Fracao, numero(a)/numero(b)}; }
+BIN_IMPL(NoModulo, %) ValorTipado NoModulo::avaliar(TabelaSimbolos& t) { auto a=esq->avaliar(t), b=dir->avaliar(t); if (a.tipo!=TipoDado::Total||b.tipo!=TipoDado::Total||std::get<int>(b.valor)==0) throw std::runtime_error("Módulo exige inteiros e divisor diferente de zero."); return {TipoDado::Total, std::get<int>(a.valor)%std::get<int>(b.valor)}; }
 
-NoExibir::NoExibir(NoExpressao* expr) : expressao(expr) {}
-NoExibir::~NoExibir() { delete expressao; }
-void NoExibir::executar(TabelaSimbolos& tabela) {
-    // Calcula o que está dentro do exibir() e imprime
-    double valor = expressao->avaliar(tabela);
-    std::cout << valor << std::endl;
-}
+NoComparacao::NoComparacao(NoExpressao* e, NoExpressao* d, OperadorComparacao o):esq(e),dir(d),operador(o){} NoComparacao::~NoComparacao(){delete esq;delete dir;}
+ValorTipado NoComparacao::avaliar(TabelaSimbolos& t){auto a=esq->avaliar(t),b=dir->avaliar(t); bool r=false; if(operador==OperadorComparacao::Igual||operador==OperadorComparacao::Diferente){if(a.tipo==TipoDado::Textao&&b.tipo==TipoDado::Textao)r=std::get<std::string>(a.valor)==std::get<std::string>(b.valor);else if(numerico(a)&&numerico(b))r=numero(a)==numero(b);else if(a.tipo==TipoDado::Sinal&&b.tipo==TipoDado::Sinal)r=std::get<bool>(a.valor)==std::get<bool>(b.valor);else throw std::runtime_error("Valores incompatíveis na comparação."); if(operador==OperadorComparacao::Diferente)r=!r;}else{if(!numerico(a)||!numerico(b))throw std::runtime_error("Comparação relacional exige números.");double x=numero(a),y=numero(b);if(operador==OperadorComparacao::Maior)r=x>y;else if(operador==OperadorComparacao::Menor)r=x<y;else if(operador==OperadorComparacao::MaiorIgual)r=x>=y;else r=x<=y;}return {TipoDado::Sinal,r};}
+NoLogico::NoLogico(NoExpressao*e,NoExpressao*d,OperadorLogico o):esq(e),dir(d),operador(o){} NoLogico::~NoLogico(){delete esq;delete dir;} ValorTipado NoLogico::avaliar(TabelaSimbolos&t){bool a=valor_verdadeiro(esq->avaliar(t)),b=valor_verdadeiro(dir->avaliar(t));return{TipoDado::Sinal,operador==OperadorLogico::E?a&&b:a||b};}
+NoNegacao::NoNegacao(NoExpressao*e):expressao(e){} NoNegacao::~NoNegacao(){delete expressao;} ValorTipado NoNegacao::avaliar(TabelaSimbolos&t){return{TipoDado::Sinal,!valor_verdadeiro(expressao->avaliar(t))};}
+NoMenosUnario::NoMenosUnario(NoExpressao*e):expressao(e){} NoMenosUnario::~NoMenosUnario(){delete expressao;} ValorTipado NoMenosUnario::avaliar(TabelaSimbolos&t){auto v=expressao->avaliar(t);if(!numerico(v))throw std::runtime_error("Sinal negativo exige número.");return v.tipo==TipoDado::Total?ValorTipado{v.tipo,-std::get<int>(v.valor)}:ValorTipado{v.tipo,-std::get<double>(v.valor)};}
+
+NoGuarde::NoGuarde(const std::string&n,TipoDado ty,NoExpressao*e):nome(n),tipo(ty),expressao(e){} NoGuarde::~NoGuarde(){delete expressao;} void NoGuarde::executar(TabelaSimbolos&t){t.definir(nome,tipo,expressao->avaliar(t));}
+NoAtribuicao::NoAtribuicao(const std::string&n,NoExpressao*e):nome(n),expressao(e){} NoAtribuicao::~NoAtribuicao(){delete expressao;} void NoAtribuicao::executar(TabelaSimbolos&t){t.atribuir(nome,expressao->avaliar(t));}
+NoExibir::NoExibir(const std::vector<NoExpressao*>&e):expressoes(e){} NoExibir::~NoExibir(){for(auto e:expressoes)delete e;} void NoExibir::executar(TabelaSimbolos&t){for(auto e:expressoes)std::cout<<valor_para_string(e->avaliar(t));std::cout<<std::endl;}
+NoBloco::NoBloco(const std::vector<NoAST*>&c):comandos(c){} NoBloco::~NoBloco(){for(auto c:comandos)delete c;} void NoBloco::executar(TabelaSimbolos&t){for(auto c:comandos)c->executar(t);}
+NoCondicional::NoCondicional(NoExpressao*c,NoBloco*a,NoBloco*s):condicao(c),entao(a),senao(s){} NoCondicional::~NoCondicional(){delete condicao;delete entao;delete senao;} void NoCondicional::executar(TabelaSimbolos&t){if(valor_verdadeiro(condicao->avaliar(t)))entao->executar(t);else if(senao)senao->executar(t);}
+NoRepeticao::NoRepeticao(NoExpressao*c,NoBloco*b):condicao(c),corpo(b){} NoRepeticao::~NoRepeticao(){delete condicao;delete corpo;} void NoRepeticao::executar(TabelaSimbolos&t){while(valor_verdadeiro(condicao->avaliar(t))){try{corpo->executar(t);}catch(const SinalParar&){break;}catch(const SinalPular&){}}}
+void NoParar::executar(TabelaSimbolos&){throw SinalParar();} void NoPular::executar(TabelaSimbolos&){throw SinalPular();}
