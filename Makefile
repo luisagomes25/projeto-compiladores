@@ -1,9 +1,9 @@
 all: oxitona
 
-oxitona: lexer.l parser.y main.cpp
+oxitona: lexer.l parser.y main.cpp ast.cpp
 	bison -d parser.y
 	flex lexer.l
-	g++ lex.yy.c parser.tab.c main.cpp -o oxitona
+	g++ lex.yy.c parser.tab.c main.cpp ast.cpp -o oxitona
 
 testar: all
 	./oxitona testes/prog1.oxi
