@@ -1,0 +1,4 @@
+função soma(a: total, b: total) : total abrir
+  voltar a + b!
+fechar
+exibir(soma(1))!

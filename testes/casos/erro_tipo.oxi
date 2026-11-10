@@ -1,0 +1,3 @@
+guarde numero = 10 : total!
+guarde texto = "abc" : textão!
+exibir(numero + texto)!

@@ -1,0 +1,6 @@
+guarde nome = "Oxítona" : textão!
+guarde ativo = fiel : sinal!
+exibir(nome + " ", ativo)!
+testar (ativo e nome == "Oxítona") abrir
+  exibir("tipos-ok")!
+fechar

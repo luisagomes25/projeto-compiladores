@@ -1,0 +1,4 @@
+guarde totalValue = 2 + 3 * 4 : total!
+guarde fracao = totalValue / 2 : fração!
+guarde resto = totalValue % 3 : total!
+exibir("total=", totalValue, "; fracao=", fracao, "; resto=", resto)!

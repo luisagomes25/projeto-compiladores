@@ -1,0 +1,6 @@
+guarde idade = 0 : total!
+guarde nota = 0.0 : fração!
+guarde ativo = fatal : sinal!
+guarde nome = "" : textão!
+obter("Idade: %t | Nota: %f | Ativo: %s | Nome: %tex", idade, nota, ativo, nome)!
+exibir("dados=", idade, ";", nota, ";", ativo, ";", nome)!

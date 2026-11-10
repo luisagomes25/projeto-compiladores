@@ -1,0 +1,9 @@
+guarde contador = 1 : total!
+repetir (contador <= 5) abrir
+  testar (contador == 3) abrir
+    contador = contador + 1!
+    pular!
+  fechar
+  exibir(contador)!
+  contador = contador + 1!
+fechar

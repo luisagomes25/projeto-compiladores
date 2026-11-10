@@ -1,0 +1,4 @@
+guarde contador = 0 : total!
+contador = contador + 1!
+contador = contador * 2!
+exibir("contador=", contador)!
