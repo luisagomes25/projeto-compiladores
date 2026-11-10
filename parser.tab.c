@@ -1652,7 +1652,7 @@ yyreduce:
 
   case 25:
 #line 73 "parser.y"
-    { std::vector<TipoDado> tipos; std::string formato=texto_sem_aspas((yyvsp[(3) - (7)].texto)); if(!tipos_do_formato(formato,tipos)||tipos.size()!=(yyvsp[(5) - (7)].nomes)->size()){ delete (yyvsp[(5) - (7)].nomes); yyerror("obter exige especificadores válidos e uma variável para cada especificador"); YYERROR; } (yyval.comando)=new NoObter(*(yyvsp[(5) - (7)].nomes),tipos); delete (yyvsp[(5) - (7)].nomes); ;}
+    { std::vector<TipoDado> tipos; std::string formato=texto_sem_aspas((yyvsp[(3) - (7)].texto)); if(!tipos_do_formato(formato,tipos)||tipos.size()!=(yyvsp[(5) - (7)].nomes)->size()){ delete (yyvsp[(5) - (7)].nomes); yyerror("obter exige especificadores válidos e uma variável para cada especificador"); YYERROR; } (yyval.comando)=new NoObter(formato,*(yyvsp[(5) - (7)].nomes),tipos); delete (yyvsp[(5) - (7)].nomes); ;}
     break;
 
   case 26:
