@@ -9,6 +9,7 @@ double numero(const ValorTipado& v) {
 }
 struct SinalParar {};
 struct SinalPular {};
+struct SinalRetorno { bool possui_valor; ValorTipado valor; };
 bool numerico(const ValorTipado& v) { return std::holds_alternative<int>(v.valor) || std::holds_alternative<double>(v.valor); }
 ValorTipado resultado_numerico(double v, bool fracao) {
     return fracao ? ValorTipado{TipoDado::Fracao, v} : ValorTipado{TipoDado::Total, static_cast<int>(v)};
@@ -33,10 +34,12 @@ ValorTipado converter_valor(TipoDado destino, const ValorTipado& v) {
     return {destino, v.valor};
 }
 
-bool TabelaSimbolos::existe(const std::string& n) const { return variaveis.find(n) != variaveis.end(); }
-const ValorTipado& TabelaSimbolos::obter(const std::string& n) const { auto i = variaveis.find(n); if (i == variaveis.end()) throw std::runtime_error("Variável '" + n + "' não declarada."); return i->second; }
+bool TabelaSimbolos::existe(const std::string& n) const { return variaveis.find(n) != variaveis.end() || (pai && pai->existe(n)); }
+const ValorTipado& TabelaSimbolos::obter(const std::string& n) const { auto i = variaveis.find(n); if (i != variaveis.end()) return i->second; if (pai) return pai->obter(n); throw std::runtime_error("Variável '" + n + "' não declarada."); }
 void TabelaSimbolos::definir(const std::string& n, TipoDado tipo, const ValorTipado& v) { if (existe(n)) throw std::runtime_error("Variável '" + n + "' já declarada."); variaveis[n] = converter_valor(tipo, v); }
-void TabelaSimbolos::atribuir(const std::string& n, const ValorTipado& v) { auto i = variaveis.find(n); if (i == variaveis.end()) throw std::runtime_error("Variável '" + n + "' não declarada."); i->second = converter_valor(i->second.tipo, v); }
+void TabelaSimbolos::atribuir(const std::string& n, const ValorTipado& v) { auto i = variaveis.find(n); if (i != variaveis.end()) { i->second = converter_valor(i->second.tipo, v); return; } if (pai) { pai->atribuir(n, v); return; } throw std::runtime_error("Variável '" + n + "' não declarada."); }
+void TabelaSimbolos::registrar_funcao(const std::string& n, NoFuncao* f) { funcoes[n] = f; }
+NoFuncao* TabelaSimbolos::obter_funcao(const std::string& n) const { auto i=funcoes.find(n); if(i!=funcoes.end()) return i->second; if(pai)return pai->obter_funcao(n); return nullptr; }
 
 NoLiteral::NoLiteral(const ValorTipado& v) : valor(v) {} ValorTipado NoLiteral::avaliar(TabelaSimbolos&) { return valor; }
 NoVariavel::NoVariavel(const std::string& n) : nome(n) {} ValorTipado NoVariavel::avaliar(TabelaSimbolos& t) { return t.obter(nome); }
@@ -59,8 +62,13 @@ NoMenosUnario::NoMenosUnario(NoExpressao*e):expressao(e){} NoMenosUnario::~NoMen
 
 NoGuarde::NoGuarde(const std::string&n,TipoDado ty,NoExpressao*e):nome(n),tipo(ty),expressao(e){} NoGuarde::~NoGuarde(){delete expressao;} void NoGuarde::executar(TabelaSimbolos&t){t.definir(nome,tipo,expressao->avaliar(t));}
 NoAtribuicao::NoAtribuicao(const std::string&n,NoExpressao*e):nome(n),expressao(e){} NoAtribuicao::~NoAtribuicao(){delete expressao;} void NoAtribuicao::executar(TabelaSimbolos&t){t.atribuir(nome,expressao->avaliar(t));}
+NoFuncao::NoFuncao(const std::string&n,const std::vector<ParametroFuncao>&p,TipoDado r,NoBloco*b):nome(n),parametros(p),retorno(r),corpo(b){} NoFuncao::~NoFuncao(){delete corpo;} void NoFuncao::executar(TabelaSimbolos&t){t.registrar_funcao(nome,this);}
+ValorTipado NoFuncao::chamar(TabelaSimbolos& pai_tabela,const std::vector<NoExpressao*>& args){if(args.size()!=parametros.size())throw std::runtime_error("Quantidade de argumentos inválida na função '"+nome+"'."); TabelaSimbolos local(&pai_tabela); for(size_t i=0;i<args.size();++i)local.definir(parametros[i].nome,parametros[i].tipo,args[i]->avaliar(pai_tabela)); try{corpo->executar(local);}catch(const SinalRetorno& r){if(retorno==TipoDado::Vazio){if(r.possui_valor)throw std::runtime_error("Função '"+nome+"' não pode retornar valor.");return{TipoDado::Vazio,0};}if(!r.possui_valor)throw std::runtime_error("Função '"+nome+"' precisa retornar um valor.");return converter_valor(retorno,r.valor);} if(retorno!=TipoDado::Vazio)throw std::runtime_error("Função '"+nome+"' terminou sem retornar valor.");return{TipoDado::Vazio,0};}
+NoChamada::NoChamada(const std::string&n,const std::vector<NoExpressao*>&a):nome(n),argumentos(a){} NoChamada::~NoChamada(){for(auto a:argumentos)delete a;} ValorTipado NoChamada::avaliar(TabelaSimbolos&t){NoFuncao*f=t.obter_funcao(nome);if(!f)throw std::runtime_error("Função '"+nome+"' não declarada.");return f->chamar(t,argumentos);}
 NoExibir::NoExibir(const std::vector<NoExpressao*>&e):expressoes(e){} NoExibir::~NoExibir(){for(auto e:expressoes)delete e;} void NoExibir::executar(TabelaSimbolos&t){for(auto e:expressoes)std::cout<<valor_para_string(e->avaliar(t));std::cout<<std::endl;}
 NoBloco::NoBloco(const std::vector<NoAST*>&c):comandos(c){} NoBloco::~NoBloco(){for(auto c:comandos)delete c;} void NoBloco::executar(TabelaSimbolos&t){for(auto c:comandos)c->executar(t);}
 NoCondicional::NoCondicional(NoExpressao*c,NoBloco*a,NoBloco*s):condicao(c),entao(a),senao(s){} NoCondicional::~NoCondicional(){delete condicao;delete entao;delete senao;} void NoCondicional::executar(TabelaSimbolos&t){if(valor_verdadeiro(condicao->avaliar(t)))entao->executar(t);else if(senao)senao->executar(t);}
 NoRepeticao::NoRepeticao(NoExpressao*c,NoBloco*b):condicao(c),corpo(b){} NoRepeticao::~NoRepeticao(){delete condicao;delete corpo;} void NoRepeticao::executar(TabelaSimbolos&t){while(valor_verdadeiro(condicao->avaliar(t))){try{corpo->executar(t);}catch(const SinalParar&){break;}catch(const SinalPular&){}}}
 void NoParar::executar(TabelaSimbolos&){throw SinalParar();} void NoPular::executar(TabelaSimbolos&){throw SinalPular();}
+NoVoltar::NoVoltar(NoExpressao*e):expressao(e){} NoVoltar::~NoVoltar(){delete expressao;} void NoVoltar::executar(TabelaSimbolos&t){if(expressao)throw SinalRetorno{true,expressao->avaliar(t)};throw SinalRetorno{false,{TipoDado::Vazio,0}};}
+NoObter::NoObter(const std::vector<std::string>&n,const std::vector<TipoDado>&t):nomes(n),tipos(t){} void NoObter::executar(TabelaSimbolos&t){for(size_t i=0;i<nomes.size();++i){if(!t.existe(nomes[i]))throw std::runtime_error("Variável '"+nomes[i]+"' não declarada no obter.");if(tipos[i]==TipoDado::Total){int v;if(!(std::cin>>v))throw std::runtime_error("Entrada inválida para total.");t.atribuir(nomes[i],{TipoDado::Total,v});}else if(tipos[i]==TipoDado::Fracao){double v;if(!(std::cin>>v))throw std::runtime_error("Entrada inválida para fração.");t.atribuir(nomes[i],{TipoDado::Fracao,v});}else if(tipos[i]==TipoDado::Sinal){std::string v;std::cin>>v;if(v!="fiel"&&v!="fatal")throw std::runtime_error("Entrada inválida para sinal.");t.atribuir(nomes[i],{TipoDado::Sinal,v=="fiel"});}else{std::string v;std::cin>>v;t.atribuir(nomes[i],{TipoDado::Textao,v});}}}

@@ -56,34 +56,35 @@
      TOKEN_TIPO_FRACAO = 272,
      TOKEN_TIPO_SINAL = 273,
      TOKEN_TIPO_TEXTAO = 274,
-     TOKEN_FIEL = 275,
-     TOKEN_FATAL = 276,
-     TOKEN_E = 277,
-     TOKEN_OU = 278,
-     TOKEN_NAO = 279,
-     TOKEN_TERMINADOR = 280,
-     TOKEN_DOIS_PONTOS = 281,
-     TOKEN_ATRIBUICAO = 282,
-     TOKEN_SOMA = 283,
-     TOKEN_SUBTRACAO = 284,
-     TOKEN_MULTIPLICACAO = 285,
-     TOKEN_DIVISAO = 286,
-     TOKEN_MODULO = 287,
-     TOKEN_PAREN_ESQ = 288,
-     TOKEN_PAREN_DIR = 289,
-     TOKEN_MAIOR = 290,
-     TOKEN_MENOR = 291,
-     TOKEN_MAIOR_IGUAL = 292,
-     TOKEN_MENOR_IGUAL = 293,
-     TOKEN_IGUALDADE = 294,
-     TOKEN_DIFERENTE = 295,
-     TOKEN_VIRGULA = 296,
-     TOKEN_ERRO = 297,
-     TOKEN_ID = 298,
-     TOKEN_TEXTO = 299,
-     TOKEN_NUM_TOTAL = 300,
-     TOKEN_NUM_FRACAO = 301,
-     UMINUS = 302
+     TOKEN_TIPO_VAZIO = 275,
+     TOKEN_FIEL = 276,
+     TOKEN_FATAL = 277,
+     TOKEN_E = 278,
+     TOKEN_OU = 279,
+     TOKEN_NAO = 280,
+     TOKEN_TERMINADOR = 281,
+     TOKEN_DOIS_PONTOS = 282,
+     TOKEN_ATRIBUICAO = 283,
+     TOKEN_SOMA = 284,
+     TOKEN_SUBTRACAO = 285,
+     TOKEN_MULTIPLICACAO = 286,
+     TOKEN_DIVISAO = 287,
+     TOKEN_MODULO = 288,
+     TOKEN_PAREN_ESQ = 289,
+     TOKEN_PAREN_DIR = 290,
+     TOKEN_MAIOR = 291,
+     TOKEN_MENOR = 292,
+     TOKEN_MAIOR_IGUAL = 293,
+     TOKEN_MENOR_IGUAL = 294,
+     TOKEN_IGUALDADE = 295,
+     TOKEN_DIFERENTE = 296,
+     TOKEN_VIRGULA = 297,
+     TOKEN_ERRO = 298,
+     TOKEN_ID = 299,
+     TOKEN_TEXTO = 300,
+     TOKEN_NUM_TOTAL = 301,
+     TOKEN_NUM_FRACAO = 302,
+     UMINUS = 303
    };
 #endif
 /* Tokens.  */
@@ -104,41 +105,42 @@
 #define TOKEN_TIPO_FRACAO 272
 #define TOKEN_TIPO_SINAL 273
 #define TOKEN_TIPO_TEXTAO 274
-#define TOKEN_FIEL 275
-#define TOKEN_FATAL 276
-#define TOKEN_E 277
-#define TOKEN_OU 278
-#define TOKEN_NAO 279
-#define TOKEN_TERMINADOR 280
-#define TOKEN_DOIS_PONTOS 281
-#define TOKEN_ATRIBUICAO 282
-#define TOKEN_SOMA 283
-#define TOKEN_SUBTRACAO 284
-#define TOKEN_MULTIPLICACAO 285
-#define TOKEN_DIVISAO 286
-#define TOKEN_MODULO 287
-#define TOKEN_PAREN_ESQ 288
-#define TOKEN_PAREN_DIR 289
-#define TOKEN_MAIOR 290
-#define TOKEN_MENOR 291
-#define TOKEN_MAIOR_IGUAL 292
-#define TOKEN_MENOR_IGUAL 293
-#define TOKEN_IGUALDADE 294
-#define TOKEN_DIFERENTE 295
-#define TOKEN_VIRGULA 296
-#define TOKEN_ERRO 297
-#define TOKEN_ID 298
-#define TOKEN_TEXTO 299
-#define TOKEN_NUM_TOTAL 300
-#define TOKEN_NUM_FRACAO 301
-#define UMINUS 302
+#define TOKEN_TIPO_VAZIO 275
+#define TOKEN_FIEL 276
+#define TOKEN_FATAL 277
+#define TOKEN_E 278
+#define TOKEN_OU 279
+#define TOKEN_NAO 280
+#define TOKEN_TERMINADOR 281
+#define TOKEN_DOIS_PONTOS 282
+#define TOKEN_ATRIBUICAO 283
+#define TOKEN_SOMA 284
+#define TOKEN_SUBTRACAO 285
+#define TOKEN_MULTIPLICACAO 286
+#define TOKEN_DIVISAO 287
+#define TOKEN_MODULO 288
+#define TOKEN_PAREN_ESQ 289
+#define TOKEN_PAREN_DIR 290
+#define TOKEN_MAIOR 291
+#define TOKEN_MENOR 292
+#define TOKEN_MAIOR_IGUAL 293
+#define TOKEN_MENOR_IGUAL 294
+#define TOKEN_IGUALDADE 295
+#define TOKEN_DIFERENTE 296
+#define TOKEN_VIRGULA 297
+#define TOKEN_ERRO 298
+#define TOKEN_ID 299
+#define TOKEN_TEXTO 300
+#define TOKEN_NUM_TOTAL 301
+#define TOKEN_NUM_FRACAO 302
+#define UMINUS 303
 
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 15 "parser.y"
+#line 26 "parser.y"
 {
     double numero;
     char *texto;
@@ -148,9 +150,12 @@ typedef union YYSTYPE
     NoBloco *bloco;
     std::vector<NoAST*> *comandos;
     std::vector<NoExpressao*> *argumentos;
+    std::vector<ParametroFuncao> *parametros;
+    std::vector<std::string> *nomes;
+    std::vector<TipoDado> *tipos;
 }
 /* Line 1529 of yacc.c.  */
-#line 154 "parser.tab.h"
+#line 159 "parser.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
