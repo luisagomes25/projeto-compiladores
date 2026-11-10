@@ -29,6 +29,8 @@
 "fração"    { return TOKEN_TIPO_FRACAO; }
 "sinal"     { return TOKEN_TIPO_SINAL; }
 "textão"    { return TOKEN_TIPO_TEXTAO; }
+"textao"    { return TOKEN_TIPO_TEXTAO; }
+"vazio"     { return TOKEN_TIPO_VAZIO; }
 
 "fiel"      { return TOKEN_FIEL; }
 "fatal"     { return TOKEN_FATAL; }

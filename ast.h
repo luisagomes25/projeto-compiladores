@@ -8,7 +8,7 @@
 #include <variant>
 #include <vector>
 
-enum class TipoDado { Total, Fracao, Sinal, Textao };
+enum class TipoDado { Total, Fracao, Sinal, Textao, Vazio };
 using Valor = std::variant<int, double, bool, std::string>;
 
 struct ValorTipado {
@@ -23,11 +23,16 @@ ValorTipado converter_valor(TipoDado destino, const ValorTipado& valor);
 
 class TabelaSimbolos {
     std::map<std::string, ValorTipado> variaveis;
+    TabelaSimbolos* pai;
+    std::map<std::string, class NoFuncao*> funcoes;
 public:
+    explicit TabelaSimbolos(TabelaSimbolos* escopo_pai = nullptr) : pai(escopo_pai) {}
     bool existe(const std::string& nome) const;
     const ValorTipado& obter(const std::string& nome) const;
     void definir(const std::string& nome, TipoDado tipo, const ValorTipado& valor);
     void atribuir(const std::string& nome, const ValorTipado& valor);
+    void registrar_funcao(const std::string& nome, class NoFuncao* funcao);
+    class NoFuncao* obter_funcao(const std::string& nome) const;
 };
 
 class NoAST {
@@ -127,6 +132,22 @@ public:
     NoAtribuicao(const std::string&, NoExpressao*); ~NoAtribuicao();
     void executar(TabelaSimbolos&) override;
 };
+struct ParametroFuncao { std::string nome; TipoDado tipo; };
+class NoBloco;
+class NoFuncao : public NoAST {
+    std::string nome; std::vector<ParametroFuncao> parametros; TipoDado retorno; NoBloco* corpo;
+public:
+    NoFuncao(const std::string&, const std::vector<ParametroFuncao>&, TipoDado, NoBloco*);
+    ~NoFuncao();
+    void executar(TabelaSimbolos&) override;
+    ValorTipado chamar(TabelaSimbolos&, const std::vector<NoExpressao*>&);
+};
+class NoChamada : public NoExpressao {
+    std::string nome; std::vector<NoExpressao*> argumentos;
+public:
+    NoChamada(const std::string&, const std::vector<NoExpressao*>&); ~NoChamada();
+    ValorTipado avaliar(TabelaSimbolos&) override;
+};
 class NoExibir : public NoAST {
     std::vector<NoExpressao*> expressoes;
 public:
@@ -162,5 +183,17 @@ public:
 };
 class NoParar : public NoAST { public: void executar(TabelaSimbolos&) override; };
 class NoPular : public NoAST { public: void executar(TabelaSimbolos&) override; };
+class NoVoltar : public NoAST {
+    NoExpressao* expressao;
+public:
+    explicit NoVoltar(NoExpressao* = nullptr); ~NoVoltar();
+    void executar(TabelaSimbolos&) override;
+};
+class NoObter : public NoAST {
+    std::vector<std::string> nomes; std::vector<TipoDado> tipos;
+public:
+    NoObter(const std::vector<std::string>&, const std::vector<TipoDado>&);
+    void executar(TabelaSimbolos&) override;
+};
 
 #endif
