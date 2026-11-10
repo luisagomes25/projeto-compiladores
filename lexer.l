@@ -1,5 +1,8 @@
-%{
+%{ 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "ast.h"
 #include "parser.tab.h"
 %}
 
@@ -8,48 +11,56 @@
 
 %%
 
-"guarde"    { printf("Linha %d: TOKEN_GUARDE\n", yylineno); }
-"testar"    { printf("Linha %d: TOKEN_TESTAR\n", yylineno); }
-"senão"     { printf("Linha %d: TOKEN_SENAO\n", yylineno); }
-"repetir"   { printf("Linha %d: TOKEN_REPETIR\n", yylineno); }
-"abrir"     { printf("Linha %d: TOKEN_ABRIR\n", yylineno); }
-"fechar"    { printf("Linha %d: TOKEN_FECHAR\n", yylineno); }
-"exibir"    { printf("Linha %d: TOKEN_EXIBIR\n", yylineno); }
-"obter"     { printf("Linha %d: TOKEN_OBTER\n", yylineno); }
+"guarde"    { return TOKEN_GUARDE; }
+"testar"    { return TOKEN_TESTAR; }
+"senão"     { return TOKEN_SENAO; }
+"repetir"   { return TOKEN_REPETIR; }
+"abrir"     { return TOKEN_ABRIR; }
+"fechar"    { return TOKEN_FECHAR; }
+"exibir"    { return TOKEN_EXIBIR; }
+"obter"     { return TOKEN_OBTER; }
+"parar"     { return TOKEN_PARAR; }
+"pular"     { return TOKEN_PULAR; }
+"função"    { return TOKEN_FUNCAO; }
+"voltar"    { return TOKEN_VOLTAR; }
+"sermão"    { return TOKEN_SERMAO; }
 
-"total"     { printf("Linha %d: TOKEN_TIPO_TOTAL\n", yylineno); }
-"fração"    { printf("Linha %d: TOKEN_TIPO_FRACAO\n", yylineno); }
-"sinal"     { printf("Linha %d: TOKEN_TIPO_SINAL\n", yylineno); }
-"textão"    { printf("Linha %d: TOKEN_TIPO_TEXTAO\n", yylineno); }
-"sermão"    { printf("Linha %d: TOKEN_TIPO_SERMAO\n", yylineno); }
+"total"     { return TOKEN_TIPO_TOTAL; }
+"fração"    { return TOKEN_TIPO_FRACAO; }
+"sinal"     { return TOKEN_TIPO_SINAL; }
+"textão"    { return TOKEN_TIPO_TEXTAO; }
 
-"fiel"      { printf("Linha %d: TOKEN_FIEL\n", yylineno); }
-"fatal"     { printf("Linha %d: TOKEN_FATAL\n", yylineno); }
+"fiel"      { return TOKEN_FIEL; }
+"fatal"     { return TOKEN_FATAL; }
+"e"         { return TOKEN_E; }
+"ou"        { return TOKEN_OU; }
+"não"       { return TOKEN_NAO; }
 
-"!"         { printf("Linha %d: TOKEN_TERMINADOR\n", yylineno); }
-":"         { printf("Linha %d: TOKEN_DOIS_PONTOS\n", yylineno); }
-"="         { printf("Linha %d: TOKEN_ATRIBUICAO\n", yylineno); }
-"+"         { printf("Linha %d: TOKEN_SOMA\n", yylineno); }
-"-"         { printf("Linha %d: TOKEN_SUBTRACAO\n", yylineno); }
-"*"         { printf("Linha %d: TOKEN_MULTIPLICACAO\n", yylineno); }
-"/"         { printf("Linha %d: TOKEN_DIVISAO\n", yylineno); }
-"("         { printf("Linha %d: TOKEN_PAREN_ESQ\n", yylineno); }
-")"         { printf("Linha %d: TOKEN_PAREN_DIR\n", yylineno); }
-">"         { printf("Linha %d: TOKEN_MAIOR\n", yylineno); }
-"<"         { printf("Linha %d: TOKEN_MENOR\n", yylineno); }
-">="        { printf("Linha %d: TOKEN_MAIOR_IGUAL\n", yylineno); }
-"<="        { printf("Linha %d: TOKEN_MENOR_IGUAL\n", yylineno); }
-"=="        { printf("Linha %d: TOKEN_IGUALDADE\n", yylineno); }
-"!="        { printf("Linha %d: TOKEN_DIFERENTE\n", yylineno); }
-","         { printf("Linha %d: TOKEN_VIRGULA\n", yylineno); }
+"!"         { return TOKEN_TERMINADOR; }
+":"         { return TOKEN_DOIS_PONTOS; }
+"="         { return TOKEN_ATRIBUICAO; }
+"+"         { return TOKEN_SOMA; }
+"-"         { return TOKEN_SUBTRACAO; }
+"*"         { return TOKEN_MULTIPLICACAO; }
+"/"         { return TOKEN_DIVISAO; }
+"%"         { return TOKEN_MODULO; }
+"("         { return TOKEN_PAREN_ESQ; }
+")"         { return TOKEN_PAREN_DIR; }
+">="        { return TOKEN_MAIOR_IGUAL; }
+"<="        { return TOKEN_MENOR_IGUAL; }
+"=="        { return TOKEN_IGUALDADE; }
+"!="        { return TOKEN_DIFERENTE; }
+">"         { return TOKEN_MAIOR; }
+"<"         { return TOKEN_MENOR; }
+","         { return TOKEN_VIRGULA; }
 
-[a-zA-Z_][a-zA-Z0-9_]*  { printf("Linha %d: TOKEN_ID (%s)\n", yylineno, yytext); }
-[0-9]+                  { printf("Linha %d: TOKEN_NUM_TOTAL (%s)\n", yylineno, yytext); }
-[0-9]+\.[0-9]+          { printf("Linha %d: TOKEN_NUM_FRACAO (%s)\n", yylineno, yytext); }
-\"[^\"]*\"              { printf("Linha %d: TOKEN_TEXTO (%s)\n", yylineno, yytext); }
+[a-zA-Z_][a-zA-Z0-9_]*  { yylval.texto = new char[strlen(yytext) + 1]; strcpy(yylval.texto, yytext); return TOKEN_ID; }
+[0-9]+\.[0-9]+          { yylval.numero = strtod(yytext, NULL); return TOKEN_NUM_FRACAO; }
+[0-9]+                  { yylval.numero = strtod(yytext, NULL); return TOKEN_NUM_TOTAL; }
+\"[^\"]*\"            { yylval.texto = new char[strlen(yytext) + 1]; strcpy(yylval.texto, yytext); return TOKEN_TEXTO; }
 
 [ \t\n\r]+              { /* Ignora espacos */ }
 
-.                       { printf("ERRO LEXICO na linha %d: Caracter invalido '%s'\n", yylineno, yytext); }
+.                       { fprintf(stderr, "ERRO LEXICO na linha %d: Caracter invalido '%s'\n", yylineno, yytext); return TOKEN_ERRO; }
 
 %%

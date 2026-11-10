@@ -1,88 +1,166 @@
 #ifndef AST_H
 #define AST_H
 
-#include <string>
-#include <map>
 #include <iostream>
+#include <map>
 #include <stdexcept>
+#include <string>
+#include <variant>
+#include <vector>
 
-// Tabela de Simbolos para o Luis gerenciar o 'guarde'
-class TabelaSimbolos {
-public:
-    std::map<std::string, double> variaveis; 
-    // Nota pro Luis: Comecamos com double para simplificar, 
-    // depois voce pode criar uma struct para suportar 'textao' e 'sinal'
+enum class TipoDado { Total, Fracao, Sinal, Textao };
+using Valor = std::variant<int, double, bool, std::string>;
+
+struct ValorTipado {
+    TipoDado tipo;
+    Valor valor;
 };
 
-// Classe Base da Arvore Sintatica Abstrata (AST)
+std::string valor_para_string(const ValorTipado& valor);
+bool valor_verdadeiro(const ValorTipado& valor);
+bool valor_compativel(TipoDado destino, const ValorTipado& valor);
+ValorTipado converter_valor(TipoDado destino, const ValorTipado& valor);
+
+class TabelaSimbolos {
+    std::map<std::string, ValorTipado> variaveis;
+public:
+    bool existe(const std::string& nome) const;
+    const ValorTipado& obter(const std::string& nome) const;
+    void definir(const std::string& nome, TipoDado tipo, const ValorTipado& valor);
+    void atribuir(const std::string& nome, const ValorTipado& valor);
+};
+
 class NoAST {
 public:
     virtual ~NoAST() {}
-    virtual void executar(TabelaSimbolos& tabela) = 0; // O Luis implementa a logica aqui
+    virtual void executar(TabelaSimbolos& tabela) = 0;
 };
 
-// --- Extensão criada pelo Luís: Expressões ---
-// Necessário pois expressões precisam retornar um valor numérico para contas
 class NoExpressao : public NoAST {
 public:
-    virtual double avaliar(TabelaSimbolos& tabela) = 0;
+    virtual ValorTipado avaliar(TabelaSimbolos& tabela) = 0;
     void executar(TabelaSimbolos& tabela) override { avaliar(tabela); }
 };
 
-// Nó para números literais (ex: 5.0, 10)
 class NoLiteral : public NoExpressao {
-    double valor;
+    ValorTipado valor;
 public:
-    NoLiteral(double v);
-    double avaliar(TabelaSimbolos& tabela) override;
+    explicit NoLiteral(const ValorTipado& v);
+    ValorTipado avaliar(TabelaSimbolos&) override;
 };
 
-// Nó para buscar valor de uma variável salva na Tabela de Símbolos
 class NoVariavel : public NoExpressao {
     std::string nome;
 public:
-    NoVariavel(std::string n);
-    double avaliar(TabelaSimbolos& tabela) override;
+    explicit NoVariavel(const std::string& n);
+    ValorTipado avaliar(TabelaSimbolos& tabela) override;
 };
 
-// Nós de Operações Matemáticas
 class NoSoma : public NoExpressao {
-    NoExpressao* esq;
-    NoExpressao* dir;
+    NoExpressao* esq; NoExpressao* dir;
 public:
-    NoSoma(NoExpressao* e, NoExpressao* d);
-    ~NoSoma();
-    double avaliar(TabelaSimbolos& tabela) override;
+    NoSoma(NoExpressao* e, NoExpressao* d); ~NoSoma();
+    ValorTipado avaliar(TabelaSimbolos&) override;
 };
-
+class NoSubtracao : public NoExpressao {
+    NoExpressao* esq; NoExpressao* dir;
+public:
+    NoSubtracao(NoExpressao* e, NoExpressao* d); ~NoSubtracao();
+    ValorTipado avaliar(TabelaSimbolos&) override;
+};
 class NoMultiplicacao : public NoExpressao {
-    NoExpressao* esq;
-    NoExpressao* dir;
+    NoExpressao* esq; NoExpressao* dir;
 public:
-    NoMultiplicacao(NoExpressao* e, NoExpressao* d);
-    ~NoMultiplicacao();
-    double avaliar(TabelaSimbolos& tabela) override;
+    NoMultiplicacao(NoExpressao* e, NoExpressao* d); ~NoMultiplicacao();
+    ValorTipado avaliar(TabelaSimbolos&) override;
+};
+class NoDivisao : public NoExpressao {
+    NoExpressao* esq; NoExpressao* dir;
+public:
+    NoDivisao(NoExpressao* e, NoExpressao* d); ~NoDivisao();
+    ValorTipado avaliar(TabelaSimbolos&) override;
+};
+class NoModulo : public NoExpressao {
+    NoExpressao* esq; NoExpressao* dir;
+public:
+    NoModulo(NoExpressao* e, NoExpressao* d); ~NoModulo();
+    ValorTipado avaliar(TabelaSimbolos&) override;
 };
 
-// --- Extensão criada pelo Luís: Comandos ---
+enum class OperadorComparacao { Maior, Menor, MaiorIgual, MenorIgual, Igual, Diferente };
+class NoComparacao : public NoExpressao {
+    NoExpressao* esq; NoExpressao* dir; OperadorComparacao operador;
+public:
+    NoComparacao(NoExpressao*, NoExpressao*, OperadorComparacao); ~NoComparacao();
+    ValorTipado avaliar(TabelaSimbolos&) override;
+};
 
-// Nó para declaração 'guarde variavel = valor : tipo!'
+enum class OperadorLogico { E, Ou };
+class NoLogico : public NoExpressao {
+    NoExpressao* esq; NoExpressao* dir; OperadorLogico operador;
+public:
+    NoLogico(NoExpressao*, NoExpressao*, OperadorLogico); ~NoLogico();
+    ValorTipado avaliar(TabelaSimbolos&) override;
+};
+class NoNegacao : public NoExpressao {
+    NoExpressao* expressao;
+public:
+    explicit NoNegacao(NoExpressao*); ~NoNegacao();
+    ValorTipado avaliar(TabelaSimbolos&) override;
+};
+class NoMenosUnario : public NoExpressao {
+    NoExpressao* expressao;
+public:
+    explicit NoMenosUnario(NoExpressao*); ~NoMenosUnario();
+    ValorTipado avaliar(TabelaSimbolos&) override;
+};
+
 class NoGuarde : public NoAST {
-    std::string nome;
-    NoExpressao* expressao;
+    std::string nome; TipoDado tipo; NoExpressao* expressao;
 public:
-    NoGuarde(std::string n, NoExpressao* expr);
-    ~NoGuarde();
-    void executar(TabelaSimbolos& tabela) override;
+    NoGuarde(const std::string&, TipoDado, NoExpressao*); ~NoGuarde();
+    void executar(TabelaSimbolos&) override;
+};
+class NoAtribuicao : public NoAST {
+    std::string nome; NoExpressao* expressao;
+public:
+    NoAtribuicao(const std::string&, NoExpressao*); ~NoAtribuicao();
+    void executar(TabelaSimbolos&) override;
+};
+class NoExibir : public NoAST {
+    std::vector<NoExpressao*> expressoes;
+public:
+    explicit NoExibir(const std::vector<NoExpressao*>&); ~NoExibir();
+    void executar(TabelaSimbolos&) override;
 };
 
-// Nó para comando 'exibir(variavel)!'
-class NoExibir : public NoAST {
-    NoExpressao* expressao;
+class NoComentario : public NoAST {
 public:
-    NoExibir(NoExpressao* expr);
-    ~NoExibir();
-    void executar(TabelaSimbolos& tabela) override;
+    void executar(TabelaSimbolos&) override {}
 };
+class NoBloco : public NoAST {
+    std::vector<NoAST*> comandos;
+public:
+    explicit NoBloco(const std::vector<NoAST*>&); ~NoBloco();
+    void executar(TabelaSimbolos&) override;
+};
+class NoPrograma : public NoBloco {
+public:
+    explicit NoPrograma(const std::vector<NoAST*>& comandos) : NoBloco(comandos) {}
+};
+class NoCondicional : public NoAST {
+    NoExpressao* condicao; NoBloco* entao; NoBloco* senao;
+public:
+    NoCondicional(NoExpressao*, NoBloco*, NoBloco*); ~NoCondicional();
+    void executar(TabelaSimbolos&) override;
+};
+class NoRepeticao : public NoAST {
+    NoExpressao* condicao; NoBloco* corpo;
+public:
+    NoRepeticao(NoExpressao*, NoBloco*); ~NoRepeticao();
+    void executar(TabelaSimbolos&) override;
+};
+class NoParar : public NoAST { public: void executar(TabelaSimbolos&) override; };
+class NoPular : public NoAST { public: void executar(TabelaSimbolos&) override; };
 
 #endif
