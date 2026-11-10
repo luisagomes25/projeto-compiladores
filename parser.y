@@ -70,7 +70,7 @@ atribuicao: TOKEN_ID TOKEN_ATRIBUICAO expressao TOKEN_TERMINADOR { std::string n
 chamada_comando: TOKEN_ID TOKEN_PAREN_ESQ argumentos_opcionais TOKEN_PAREN_DIR TOKEN_TERMINADOR { std::string n=consumir_texto($1); $$=new NoChamada(n,*$3); delete $3; };
 tipo: TOKEN_TIPO_TOTAL { $$=TipoDado::Total; } | TOKEN_TIPO_FRACAO { $$=TipoDado::Fracao; } | TOKEN_TIPO_SINAL { $$=TipoDado::Sinal; } | TOKEN_TIPO_TEXTAO { $$=TipoDado::Textao; };
 exibicao: TOKEN_EXIBIR TOKEN_PAREN_ESQ argumentos TOKEN_PAREN_DIR TOKEN_TERMINADOR { $$=new NoExibir(*$3); delete $3; };
-entrada: TOKEN_OBTER TOKEN_PAREN_ESQ TOKEN_TEXTO TOKEN_VIRGULA lista_ids TOKEN_PAREN_DIR TOKEN_TERMINADOR { std::vector<TipoDado> tipos; std::string formato=texto_sem_aspas($3); if(!tipos_do_formato(formato,tipos)||tipos.size()!=$5->size()){ delete $5; yyerror("obter exige especificadores válidos e uma variável para cada especificador"); YYERROR; } $$=new NoObter(*$5,tipos); delete $5; };
+entrada: TOKEN_OBTER TOKEN_PAREN_ESQ TOKEN_TEXTO TOKEN_VIRGULA lista_ids TOKEN_PAREN_DIR TOKEN_TERMINADOR { std::vector<TipoDado> tipos; std::string formato=texto_sem_aspas($3); if(!tipos_do_formato(formato,tipos)||tipos.size()!=$5->size()){ delete $5; yyerror("obter exige especificadores válidos e uma variável para cada especificador"); YYERROR; } $$=new NoObter(formato,*$5,tipos); delete $5; };
 condicional: TOKEN_TESTAR TOKEN_PAREN_ESQ expressao TOKEN_PAREN_DIR bloco senao_opcional { $$=new NoCondicional($3,$5,$6); };
 senao_opcional: /* vazio */ { $$=0; } | TOKEN_SENAO bloco { $$=$2; };
 repeticao: TOKEN_REPETIR TOKEN_PAREN_ESQ expressao TOKEN_PAREN_DIR bloco { $$=new NoRepeticao($3,$5); };

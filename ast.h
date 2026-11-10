@@ -190,9 +190,9 @@ public:
     void executar(TabelaSimbolos&) override;
 };
 class NoObter : public NoAST {
-    std::vector<std::string> nomes; std::vector<TipoDado> tipos;
+    std::string formato; std::vector<std::string> nomes; std::vector<TipoDado> tipos;
 public:
-    NoObter(const std::vector<std::string>&, const std::vector<TipoDado>&);
+    NoObter(const std::string&, const std::vector<std::string>&, const std::vector<TipoDado>&);
     void executar(TabelaSimbolos&) override;
 };
 
