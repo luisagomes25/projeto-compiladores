@@ -1,0 +1,9 @@
+função soma(a: total, b: total) : total abrir
+  voltar a + b!
+fechar
+função saudacao(nome: textão) : vazio abrir
+  exibir("Olá, ", nome)!
+  voltar!
+fechar
+exibir("soma=", soma(7, 5))!
+saudacao("Ana")!

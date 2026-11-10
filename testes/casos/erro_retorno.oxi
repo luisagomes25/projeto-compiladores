@@ -1,0 +1,4 @@
+função obrigatoria() : total abrir
+  exibir("sem retorno")!
+fechar
+obrigatoria()!

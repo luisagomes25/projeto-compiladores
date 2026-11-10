@@ -1,0 +1,2 @@
+guarde zero = 0 : total!
+exibir(10 / zero)!

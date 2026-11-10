@@ -8,5 +8,8 @@ oxitona: lexer.l parser.y main.cpp ast.cpp
 testar: all
 	./oxitona testes/prog1.oxi
 
+test: all
+	sh testes/testar.sh
+
 clean:
 	rm -f lex.yy.c parser.tab.c parser.tab.h oxitona

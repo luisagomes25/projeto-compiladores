@@ -1,0 +1,2 @@
+guarde valor = 0 : total!
+obter("Valor: %x", valor)!
