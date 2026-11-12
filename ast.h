@@ -9,7 +9,7 @@
 #include <vector>
 
 enum class TipoDado { Total, Fracao, Sinal, Textao, Vazio };
-using Valor = std::variant<int, double, bool, std::string>;
+using Valor = std::variant<int, double, bool, std::string, std::monostate>;
 
 struct ValorTipado {
     TipoDado tipo;
