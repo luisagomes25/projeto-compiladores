@@ -1,0 +1,6 @@
+se (fatal) abrir
+  exibir("ramo se")!
+fechar
+ou se (fiel) abrir
+  exibir("ramo ou se")!
+fechar

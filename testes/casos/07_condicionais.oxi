@@ -1,0 +1,38 @@
+guarde valor = 10 : total!
+guarde resultado = 0 : total!
+
+se (valor > 5) abrir
+  resultado = resultado + 1!
+fechar ou se (valor == 10) abrir
+  resultado = resultado + 10!
+fechar senão abrir
+  resultado = resultado + 100!
+fechar
+
+se (valor > 20) abrir
+  resultado = resultado + 100!
+fechar ou se (valor == 10) abrir
+  resultado = resultado + 10!
+fechar senão abrir
+  resultado = resultado + 1000!
+fechar
+
+se (valor < 5) abrir
+  resultado = resultado + 1000!
+fechar ou se (valor == 9) abrir
+  resultado = resultado + 100!
+fechar senão abrir
+  resultado = resultado + 100!
+fechar
+
+se (valor == 9 ou valor == 10) abrir
+  resultado = resultado + 1000!
+fechar senão abrir
+  resultado = resultado + 10000!
+fechar
+
+se (valor == 10) abrir
+  resultado = resultado + 1!
+fechar
+
+exibir(resultado)!

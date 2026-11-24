@@ -84,7 +84,7 @@ O projeto conta com um `Makefile` na raiz que automatiza a geração do analisad
 
 O repositório inclui tanto os quatro programas oficiais da especificação (`testes/prog1.oxi` a `testes/prog4.oxi`) quanto uma bateria automatizada de testes de regressão em `testes/casos/`.
 
-### 1. Executar a bateria completa de testes automatizados (14 casos)
+### 1. Executar a bateria completa de testes automatizados (20 casos)
 Valida expressões, tipos, atribuições, controle de fluxo, funções, entrada via `obter` e tratamento de erros semânticos/execução:
 ```bash
 make test

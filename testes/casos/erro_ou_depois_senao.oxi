@@ -1,0 +1,11 @@
+se (fiel) abrir
+  exibir("ramo se")!
+fechar senão abrir
+  exibir("ramo senão")!
+fechar
+
+ou se (fiel) abrir
+  exibir("inválido")!
+fechar senão abrir
+  exibir("inválido")!
+fechar

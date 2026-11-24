@@ -1,0 +1,3 @@
+se (1) abrir
+  exibir("não devia executar")!
+fechar

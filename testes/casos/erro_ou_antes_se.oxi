@@ -1,0 +1,5 @@
+ou se (fiel) abrir
+  exibir("não devia executar")!
+fechar senão abrir
+  exibir("inválido")!
+fechar

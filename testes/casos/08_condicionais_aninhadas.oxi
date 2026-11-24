@@ -1,0 +1,17 @@
+guarde resultado = 0 : total!
+
+se (fiel) abrir
+  se (fatal) abrir
+    resultado = resultado + 100!
+  fechar ou se (fiel) abrir
+    resultado = resultado + 1!
+  fechar senão abrir
+    resultado = resultado + 10!
+  fechar
+fechar ou se (fatal) abrir
+  resultado = resultado + 10!
+fechar senão abrir
+  resultado = resultado + 100!
+fechar
+
+exibir(resultado)!
