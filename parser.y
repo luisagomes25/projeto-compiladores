@@ -9,6 +9,11 @@ extern int erro_lexico;
 void yyerror(const char *s);
 NoPrograma* arvore_raiz = 0;
 template <typename T> static T* com_linha(T* no, int linha, int coluna) { no->linha = linha; no->coluna = coluna; return no; }
+static NoBloco* como_alternativa(NoExpressao* condicao, NoBloco* bloco, NoBloco* alternativa, int linha, int coluna) {
+    std::vector<NoAST*> comandos;
+    comandos.push_back(com_linha(new NoCondicional(condicao, bloco, alternativa), linha, coluna));
+    return com_linha(new NoBloco(comandos), linha, coluna);
+}
 static std::string texto_sem_aspas(char *s) { std::string r(s); delete[] s; if (r.size() >= 2) return r.substr(1, r.size()-2); return r; }
 static std::string consumir_texto(char *s) { std::string r(s); delete[] s; return r; }
 static bool tipos_do_formato(const std::string& formato, std::vector<TipoDado>& tipos) {
@@ -39,7 +44,7 @@ static bool tipos_do_formato(const std::string& formato, std::vector<TipoDado>& 
     std::vector<std::string> *nomes;
     std::vector<TipoDado> *tipos;
 }
-%token TOKEN_GUARDE TOKEN_TESTAR TOKEN_SENAO TOKEN_REPETIR TOKEN_ABRIR TOKEN_FECHAR TOKEN_EXIBIR TOKEN_OBTER TOKEN_PARAR TOKEN_PULAR TOKEN_FUNCAO TOKEN_VOLTAR TOKEN_SERMAO
+%token TOKEN_GUARDE TOKEN_SE TOKEN_SENAO TOKEN_REPETIR TOKEN_ABRIR TOKEN_FECHAR TOKEN_EXIBIR TOKEN_OBTER TOKEN_PARAR TOKEN_PULAR TOKEN_FUNCAO TOKEN_VOLTAR TOKEN_SERMAO
 %token TOKEN_TIPO_TOTAL TOKEN_TIPO_FRACAO TOKEN_TIPO_SINAL TOKEN_TIPO_TEXTAO TOKEN_TIPO_VAZIO TOKEN_FIEL TOKEN_FATAL TOKEN_E TOKEN_OU TOKEN_NAO
 %token TOKEN_TERMINADOR TOKEN_DOIS_PONTOS TOKEN_ATRIBUICAO TOKEN_SOMA TOKEN_SUBTRACAO TOKEN_MULTIPLICACAO TOKEN_DIVISAO TOKEN_MODULO TOKEN_PAREN_ESQ TOKEN_PAREN_DIR
 %token TOKEN_MAIOR TOKEN_MENOR TOKEN_MAIOR_IGUAL TOKEN_MENOR_IGUAL TOKEN_IGUALDADE TOKEN_DIFERENTE TOKEN_VIRGULA TOKEN_ERRO
@@ -47,7 +52,7 @@ static bool tipos_do_formato(const std::string& formato, std::vector<TipoDado>& 
 %token <numero> TOKEN_NUM_TOTAL TOKEN_NUM_FRACAO
 %type <comandos> lista_comandos
 %type <comando> comando comentario declaracao atribuicao chamada_comando exibicao entrada condicional repeticao controle_fluxo funcao retorno
-%type <bloco> bloco senao_opcional
+%type <bloco> bloco senao_opcional encadeamento_ou
 %type <tipo> tipo
 %type <expressao> expressao
 %type <argumentos> argumentos argumentos_opcionais
@@ -74,8 +79,12 @@ chamada_comando: TOKEN_ID TOKEN_PAREN_ESQ argumentos_opcionais TOKEN_PAREN_DIR T
 tipo: TOKEN_TIPO_TOTAL { $$=TipoDado::Total; } | TOKEN_TIPO_FRACAO { $$=TipoDado::Fracao; } | TOKEN_TIPO_SINAL { $$=TipoDado::Sinal; } | TOKEN_TIPO_TEXTAO { $$=TipoDado::Textao; };
 exibicao: TOKEN_EXIBIR TOKEN_PAREN_ESQ argumentos TOKEN_PAREN_DIR TOKEN_TERMINADOR { $$=com_linha(new NoExibir(*$3), @1.first_line, @1.first_column); delete $3; };
 entrada: TOKEN_OBTER TOKEN_PAREN_ESQ TOKEN_TEXTO TOKEN_VIRGULA lista_ids TOKEN_PAREN_DIR TOKEN_TERMINADOR { std::vector<TipoDado> tipos; std::string formato=texto_sem_aspas($3); if(!tipos_do_formato(formato,tipos)||tipos.size()!=$5->size()){ delete $5; diagnostico::emitir("semantic error", @1.first_line, @1.first_column, 1, "obter exige especificadores válidos e uma variável para cada especificador"); YYERROR; } $$=com_linha(new NoObter(formato,*$5,tipos), @1.first_line, @1.first_column); delete $5; };
-condicional: TOKEN_TESTAR TOKEN_PAREN_ESQ expressao TOKEN_PAREN_DIR bloco senao_opcional { $$=com_linha(new NoCondicional($3,$5,$6), @1.first_line, @1.first_column); };
-senao_opcional: /* vazio */ { $$=0; } | TOKEN_SENAO bloco { $$=$2; };
+condicional: TOKEN_SE TOKEN_PAREN_ESQ expressao TOKEN_PAREN_DIR bloco senao_opcional { $$=com_linha(new NoCondicional($3,$5,$6), @1.first_line, @1.first_column); };
+senao_opcional: /* vazio */ { $$=0; } | TOKEN_SENAO bloco { $$=$2; } | encadeamento_ou { $$=$1; };
+encadeamento_ou:
+    TOKEN_OU TOKEN_SE TOKEN_PAREN_ESQ expressao TOKEN_PAREN_DIR bloco TOKEN_SENAO bloco { $$=como_alternativa($4,$6,$8,@1.first_line,@1.first_column); }
+  | TOKEN_OU TOKEN_SE TOKEN_PAREN_ESQ expressao TOKEN_PAREN_DIR bloco encadeamento_ou { $$=como_alternativa($4,$6,$7,@1.first_line,@1.first_column); }
+  ;
 repeticao: TOKEN_REPETIR TOKEN_PAREN_ESQ expressao TOKEN_PAREN_DIR bloco { $$=com_linha(new NoRepeticao($3,$5), @1.first_line, @1.first_column); };
 bloco: TOKEN_ABRIR lista_comandos TOKEN_FECHAR { $$=com_linha(new NoBloco(*$2), @1.first_line, @1.first_column); delete $2; };
 controle_fluxo: TOKEN_PARAR TOKEN_TERMINADOR { $$=com_linha(new NoParar(), @1.first_line, @1.first_column); } | TOKEN_PULAR TOKEN_TERMINADOR { $$=com_linha(new NoPular(), @1.first_line, @1.first_column); };

@@ -43,6 +43,7 @@ void diagnostico::emitir(const std::string& categoria, int linha, int coluna, in
 
     std::ifstream fonte(arquivo_fonte);
     std::string texto;
+    bool exibiu_contexto = false;
     for (int atual = 1; atual <= linha && std::getline(fonte, texto); ++atual) {
         if (atual == linha) {
             int largura = static_cast<int>(std::to_string(linha).size());
@@ -50,8 +51,16 @@ void diagnostico::emitir(const std::string& categoria, int linha, int coluna, in
             std::cerr << std::string(largura + 2, ' ') << " | "
                       << std::string(std::max(0, coluna - 1), ' ')
                       << std::string(std::max(1, extensao), '^') << '\n';
+            exibiu_contexto = true;
             break;
         }
+    }
+    if (!exibiu_contexto) {
+        int largura = static_cast<int>(std::to_string(linha).size());
+        std::cerr << ' ' << std::setw(largura) << linha << " |\n";
+        std::cerr << std::string(largura + 2, ' ') << " | "
+                  << std::string(std::max(0, coluna - 1), ' ')
+                  << std::string(std::max(1, extensao), '^') << '\n';
     }
 
     if (modo_debug && !detalhe_debug.empty())

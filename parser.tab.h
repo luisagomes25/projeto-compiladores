@@ -40,7 +40,7 @@
       know about them.  */
    enum yytokentype {
      TOKEN_GUARDE = 258,
-     TOKEN_TESTAR = 259,
+     TOKEN_SE = 259,
      TOKEN_SENAO = 260,
      TOKEN_REPETIR = 261,
      TOKEN_ABRIR = 262,
@@ -89,7 +89,7 @@
 #endif
 /* Tokens.  */
 #define TOKEN_GUARDE 258
-#define TOKEN_TESTAR 259
+#define TOKEN_SE 259
 #define TOKEN_SENAO 260
 #define TOKEN_REPETIR 261
 #define TOKEN_ABRIR 262
@@ -140,7 +140,7 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 29 "parser.y"
+#line 34 "parser.y"
 {
     double numero;
     char *texto;

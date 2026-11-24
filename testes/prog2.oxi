@@ -1,5 +1,5 @@
 guarde temp = 38.0 : fração !
-testar (temp > 37.5) abrir
+se (temp > 37.5) abrir
   exibir("Estado febril.") !
 fechar senão abrir
   exibir("Normal.") !

@@ -28,7 +28,7 @@ A **Oxítona** é uma linguagem de programação imperativa, fortemente tipada e
   * Aritméticos: `+` (soma e concatenação de `textão`), `-`, `*`, `/` e `%`.
   * Relacionais: `>`, `<`, `>=`, `<=`, `==` e `!=`.
   * Lógicos: `e`, `ou` e `não`.
-- **Controle de Fluxo e Repetição:** condicionais com `testar` / `senão` e laços com `repetir`, incluindo desvios de fluxo `parar!` e `pular!`.
+- **Controle de Fluxo e Repetição:** condicionais com `se`, ramos intermediários `ou se` e ramo alternativo `senão`; laços com `repetir` e desvios `parar!` / `pular!`.
 - **Sub-rotinas (Funções):** declaração via `função <nome>(<params>) : <tipo_retorno> abrir ... fechar` e retorno via `voltar!`.
 - **Entrada e Saída Nativa:** `exibir(...)!` para saída no console e `obter("<formato>", var1, ...)!` para leitura tipada da entrada padrão (`%t`, `%f`, `%s`, `%tex`).
 
@@ -39,7 +39,7 @@ guarde nota1 = 7.5 : fração!
 guarde nota2 = 8.0 : fração!
 guarde media = (nota1 + nota2) / 2 : fração!
 
-testar (media >= 7.0) abrir
+se (media >= 7.0) abrir
   exibir("Aluno aprovado com media: ", media)!
 fechar senão abrir
   exibir("Aluno reprovado.")!

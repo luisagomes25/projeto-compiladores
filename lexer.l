@@ -27,7 +27,7 @@ static int coluna_lexer = 1;
 %%
 
 "guarde"    { return TOKEN_GUARDE; }
-"testar"    { return TOKEN_TESTAR; }
+"se"        { return TOKEN_SE; }
 "senão"     { return TOKEN_SENAO; }
 "repetir"   { return TOKEN_REPETIR; }
 "abrir"     { return TOKEN_ABRIR; }
