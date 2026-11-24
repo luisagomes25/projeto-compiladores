@@ -26,12 +26,18 @@ esperar_saida() {
 
 esperar_erro() {
     caso=$1
-    esperado=$2
-    if "$BIN" "$CASOS/$caso" >"$TMP_DIR/saida" 2>"$TMP_DIR/erro"; then
+    categoria=$2
+    linha=$3
+    esperado=$4
+    if "$BIN" --debug "$CASOS/$caso" >"$TMP_DIR/saida" 2>"$TMP_DIR/erro"; then
         echo "FAIL: $caso (deveria falhar)"
         cat "$TMP_DIR/saida" "$TMP_DIR/erro"
         falhou=$((falhou + 1))
-    elif grep -Fq "$esperado" "$TMP_DIR/erro"; then
+    elif grep -Fq "$esperado" "$TMP_DIR/erro" \
+        && grep -Fq "$CASOS/$caso:$linha:" "$TMP_DIR/erro" \
+        && grep -Fq ": error: $categoria:" "$TMP_DIR/erro" \
+        && grep -Fq "| " "$TMP_DIR/erro" \
+        && grep -Fq "^" "$TMP_DIR/erro"; then
         echo "PASS: $caso (erro esperado)"
         passou=$((passou + 1))
     else
@@ -62,12 +68,14 @@ esperar_saida 04_fluxo.oxi "4"
 esperar_saida 05_funcoes.oxi "soma=12"
 esperar_entrada 06_obter.oxi "21 8.5 fiel Ana" "dados=21;8.5;fiel;Ana"
 
-esperar_erro erro_obter_sem_variavel.oxi "expecting TOKEN_VIRGULA"
-esperar_erro erro_obter_marcador.oxi "especificadores válidos"
-esperar_erro erro_tipo.oxi "Soma exige números"
-esperar_erro erro_divisao.oxi "Divisão inválida"
-esperar_erro erro_funcao.oxi "Quantidade de argumentos inválida"
-esperar_erro erro_retorno.oxi "terminou sem retornar valor"
+esperar_erro erro_lexico.oxi "lexical error" 2 "caractere inválido"
+esperar_erro erro_sintatico.oxi "syntax error" 2 "token inesperado ou ausente"
+esperar_erro erro_obter_sem_variavel.oxi "syntax error" 1 "token inesperado ou ausente"
+esperar_erro erro_obter_marcador.oxi "semantic error" 2 "especificadores válidos"
+esperar_erro erro_tipo.oxi "runtime error" 3 "Soma exige números"
+esperar_erro erro_divisao.oxi "runtime error" 2 "Divisão inválida"
+esperar_erro erro_funcao.oxi "runtime error" 4 "Quantidade de argumentos inválida"
+esperar_erro erro_retorno.oxi "runtime error" 1 "terminou sem retornar valor"
 
 echo "Resultado: $passou passaram; $falhou falharam."
 test "$falhou" -eq 0

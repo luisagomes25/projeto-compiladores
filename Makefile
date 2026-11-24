@@ -1,9 +1,9 @@
 all: oxitona oxi
 
-oxitona: lexer.l parser.y main.cpp ast.cpp
+oxitona: lexer.l parser.y main.cpp ast.cpp diagnosticos.cpp diagnosticos.h ast.h
 	bison -d parser.y
 	flex lexer.l
-	g++ -std=c++17 -x c++ lex.yy.c parser.tab.c main.cpp ast.cpp -o oxitona
+	g++ -std=c++17 -x c++ lex.yy.c parser.tab.c main.cpp ast.cpp diagnosticos.cpp -o oxitona
 
 oxi: oxitona
 	cp oxitona oxi

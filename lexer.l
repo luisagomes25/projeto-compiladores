@@ -3,11 +3,26 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ast.h"
+#include "diagnosticos.h"
 #include "parser.tab.h"
+
+extern int erro_lexico;
+static int linha_lexer = 1;
+static int coluna_lexer = 1;
+#define YY_USER_ACTION \
+    yylloc.first_line = linha_lexer; \
+    yylloc.first_column = coluna_lexer; \
+    for (int i = 0; i < yyleng; ++i) { \
+        unsigned char caractere = static_cast<unsigned char>(yytext[i]); \
+        if (yytext[i] == '\n') { ++linha_lexer; coluna_lexer = 1; } \
+        else if (yytext[i] == '\t') coluna_lexer = ((coluna_lexer - 1) / 8 + 1) * 8 + 1; \
+        else if ((caractere & 0xC0) != 0x80) ++coluna_lexer; \
+    } \
+    yylloc.last_line = linha_lexer; \
+    yylloc.last_column = coluna_lexer;
 %}
 
 %option noyywrap
-%option yylineno
 
 %%
 
@@ -63,6 +78,8 @@
 
 [ \t\n\r]+              { /* Ignora espacos */ }
 
-.                       { fprintf(stderr, "ERRO LEXICO na linha %d: Caracter invalido '%s'\n", yylineno, yytext); return TOKEN_ERRO; }
+.                       { erro_lexico = 1; diagnostico::emitir("lexical error", yylloc.first_line, yylloc.first_column, yyleng, std::string("caractere inválido '") + yytext + "'"); return TOKEN_ERRO; }
+
+<<EOF>>                 { yylloc.first_line = yylloc.last_line = linha_lexer; yylloc.first_column = yylloc.last_column = coluna_lexer; return 0; }
 
 %%

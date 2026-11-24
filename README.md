@@ -84,7 +84,7 @@ O projeto conta com um `Makefile` na raiz que automatiza a geração do analisad
 
 O repositório inclui tanto os quatro programas oficiais da especificação (`testes/prog1.oxi` a `testes/prog4.oxi`) quanto uma bateria automatizada de testes de regressão em `testes/casos/`.
 
-### 1. Executar a bateria completa de testes automatizados (12 casos)
+### 1. Executar a bateria completa de testes automatizados (14 casos)
 Valida expressões, tipos, atribuições, controle de fluxo, funções, entrada via `obter` e tratamento de erros semânticos/execução:
 ```bash
 make test
@@ -114,6 +114,14 @@ Para interpretar qualquer código-fonte escrito na linguagem Oxítona, passe o c
 ```bash
 ./oxitona caminho/para/arquivo.oxi
 ```
+
+Os erros são exibidos no formato do GCC, com caminho, linha, coluna, categoria, trecho da fonte e marcador de posição. Para acrescentar o detalhe interno do parser em erros sintáticos, use o modo debug (`-g` também é aceito):
+
+```bash
+./oxitona --debug caminho/para/arquivo.oxi
+```
+
+Os diagnósticos identificam erros léxicos, sintáticos, semânticos e de execução. Verificações de tipos e nomes são feitas durante a execução do interpretador, não em uma etapa separada de compilação.
 
 ---
 

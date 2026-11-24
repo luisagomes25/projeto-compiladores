@@ -8,6 +8,9 @@
 #include <variant>
 #include <vector>
 
+extern int linha_execucao_atual;
+extern int coluna_execucao_atual;
+
 enum class TipoDado { Total, Fracao, Sinal, Textao, Vazio };
 using Valor = std::variant<int, double, bool, std::string, std::monostate>;
 
@@ -37,6 +40,8 @@ public:
 
 class NoAST {
 public:
+    int linha = 1;
+    int coluna = 1;
     virtual ~NoAST() {}
     virtual void executar(TabelaSimbolos& tabela) = 0;
 };
