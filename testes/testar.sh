@@ -4,6 +4,7 @@ set -eu
 
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 BIN="$ROOT/oxitona"
+PROGS="$ROOT/testes"
 CASOS="$ROOT/testes/casos"
 TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/oxitona-testes.XXXXXX")
 trap 'rm -rf "$TMP_DIR"' EXIT HUP INT TERM
@@ -61,13 +62,31 @@ esperar_entrada() {
     fi
 }
 
+esperar_programa() {
+    prog=$1
+    esperado=$2
+    if "$BIN" "$PROGS/$prog" >"$TMP_DIR/saida" 2>"$TMP_DIR/erro" && [ "$(cat "$TMP_DIR/saida")" = "$esperado" ]; then
+        echo "PASS: $prog"
+        passou=$((passou + 1))
+    else
+        echo "FAIL: $prog"
+        cat "$TMP_DIR/saida" "$TMP_DIR/erro"
+        falhou=$((falhou + 1))
+    fi
+}
+
+esperar_programa prog1.oxi "A área é: 12.5"
+esperar_programa prog2.oxi "Estado febril."
+esperar_programa prog3.oxi "$(printf '1\n2\n3\n4\n5')"
+esperar_programa prog4.oxi "Aluno aprovado com media: 7.75"
+
 esperar_saida 01_expressoes.oxi "total=14; fracao=7; resto=2"
 esperar_saida 02_tipos.oxi "tipos-ok"
 esperar_saida 03_atribuicao.oxi "contador=2"
 esperar_saida 04_fluxo.oxi "4"
 esperar_saida 05_funcoes.oxi "soma=12"
 esperar_entrada 06_obter.oxi "21 8.5 fiel Ana" "dados=21;8.5;fiel;Ana"
-esperar_saida 07_condicionais.oxi "1112"
+esperar_saida 07_condicionais.oxi "11112"
 esperar_saida 08_condicionais_aninhadas.oxi "1"
 
 esperar_erro erro_lexico.oxi "lexical error" 2 "caractere inválido"

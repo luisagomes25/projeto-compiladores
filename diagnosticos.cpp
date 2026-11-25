@@ -48,7 +48,7 @@ void diagnostico::emitir(const std::string& categoria, int linha, int coluna, in
         if (atual == linha) {
             int largura = static_cast<int>(std::to_string(linha).size());
             std::cerr << ' ' << std::setw(largura) << atual << " | " << expandir_tabs(texto) << '\n';
-            std::cerr << std::string(largura + 2, ' ') << " | "
+            std::cerr << std::string(largura + 1, ' ') << " | "
                       << std::string(std::max(0, coluna - 1), ' ')
                       << std::string(std::max(1, extensao), '^') << '\n';
             exibiu_contexto = true;
@@ -58,7 +58,7 @@ void diagnostico::emitir(const std::string& categoria, int linha, int coluna, in
     if (!exibiu_contexto) {
         int largura = static_cast<int>(std::to_string(linha).size());
         std::cerr << ' ' << std::setw(largura) << linha << " |\n";
-        std::cerr << std::string(largura + 2, ' ') << " | "
+        std::cerr << std::string(largura + 1, ' ') << " | "
                   << std::string(std::max(0, coluna - 1), ' ')
                   << std::string(std::max(1, extensao), '^') << '\n';
     }

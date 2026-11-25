@@ -22,7 +22,7 @@ static int coluna_lexer = 1;
     yylloc.last_column = coluna_lexer;
 %}
 
-%option noyywrap
+%option noyywrap nounput
 
 %%
 

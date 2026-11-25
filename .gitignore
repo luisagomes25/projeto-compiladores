@@ -1,3 +1,7 @@
 analisador_lexico
 lex.yy.c
+parser.tab.c
+parser.tab.h
+oxitona
+oxi
 desenvolvimento_sintatico/

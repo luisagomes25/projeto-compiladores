@@ -35,4 +35,14 @@ se (valor == 10) abrir
   resultado = resultado + 1!
 fechar
 
+se (valor == 1) abrir
+  resultado = resultado + 100000!
+fechar ou se (valor == 5) abrir
+  resultado = resultado + 100000!
+fechar ou se (valor == 10) abrir
+  resultado = resultado + 10000!
+fechar senão abrir
+  resultado = resultado + 100000!
+fechar
+
 exibir(resultado)!
