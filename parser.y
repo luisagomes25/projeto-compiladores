@@ -29,7 +29,7 @@ static bool tipos_do_formato(const std::string& formato, std::vector<TipoDado>& 
 }
 %}
 
-%define parse.error verbose
+%error-verbose
 %locations
 %union {
     double numero;
