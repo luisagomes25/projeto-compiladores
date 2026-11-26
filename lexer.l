@@ -78,7 +78,7 @@ static int coluna_lexer = 1;
 
 [ \t\n\r]+              { /* Ignora espacos */ }
 
-.                       { erro_lexico = 1; diagnostico::emitir("lexical error", yylloc.first_line, yylloc.first_column, yyleng, std::string("caractere inválido '") + yytext + "'"); return TOKEN_ERRO; }
+.                       { erro_lexico = 1; diagnostico::emitir("lexical error", yylloc.first_line, yylloc.first_column, yyleng, std::string("caractere inválido '") + yytext + "'", "lexer: lexer.l:81: regra de caractere não reconhecido"); return TOKEN_ERRO; }
 
 <<EOF>>                 { yylloc.first_line = yylloc.last_line = linha_lexer; yylloc.first_column = yylloc.last_column = coluna_lexer; return 0; }
 

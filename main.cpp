@@ -33,7 +33,8 @@ int main(int argc, char **argv) {
     diagnostico::configurar(caminho, debug);
     yyin = fopen(caminho, "r");
     if (!yyin) {
-        diagnostico::emitir("file error", 0, 0, 0, "não foi possível abrir o arquivo");
+        diagnostico::emitir("file error", 0, 0, 0, "não foi possível abrir o arquivo",
+                            "driver: main.cpp:34: abertura do arquivo-fonte");
         return 1;
     }
 
@@ -49,8 +50,14 @@ int main(int argc, char **argv) {
         arvore_raiz->executar(tabela);
         delete arvore_raiz;
         return 0;
+    } catch (const ErroRuntime& erro) {
+        diagnostico::emitir("runtime error", linha_execucao_atual, coluna_execucao_atual, 1, erro.what(),
+                            "runtime: " + erro.detalhe_debug());
+        delete arvore_raiz;
+        return 1;
     } catch (const std::exception& erro) {
-        diagnostico::emitir("runtime error", linha_execucao_atual, coluna_execucao_atual, 1, erro.what());
+        diagnostico::emitir("runtime error", linha_execucao_atual, coluna_execucao_atual, 1, erro.what(),
+                            "runtime: exceção propagada sem metadados da AST");
         delete arvore_raiz;
         return 1;
     }

@@ -8,6 +8,20 @@
 #include <variant>
 #include <vector>
 
+class ErroRuntime : public std::runtime_error {
+public:
+    std::string arquivo_origem;
+    int linha_origem;
+    std::string funcao_origem;
+
+    ErroRuntime(const std::string& mensagem, const char* arquivo, int linha, const char* funcao)
+        : std::runtime_error(mensagem), arquivo_origem(arquivo), linha_origem(linha), funcao_origem(funcao) {}
+
+    std::string detalhe_debug() const {
+        return arquivo_origem + ":" + std::to_string(linha_origem) + ": " + funcao_origem;
+    }
+};
+
 extern int linha_execucao_atual;
 extern int coluna_execucao_atual;
 

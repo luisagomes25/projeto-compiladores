@@ -78,7 +78,7 @@ atribuicao: TOKEN_ID TOKEN_ATRIBUICAO expressao TOKEN_TERMINADOR { std::string n
 chamada_comando: TOKEN_ID TOKEN_PAREN_ESQ argumentos_opcionais TOKEN_PAREN_DIR TOKEN_TERMINADOR { std::string n=consumir_texto($1); $$=com_linha(new NoChamada(n,*$3), @1.first_line, @1.first_column); delete $3; };
 tipo: TOKEN_TIPO_TOTAL { $$=TipoDado::Total; } | TOKEN_TIPO_FRACAO { $$=TipoDado::Fracao; } | TOKEN_TIPO_SINAL { $$=TipoDado::Sinal; } | TOKEN_TIPO_TEXTAO { $$=TipoDado::Textao; };
 exibicao: TOKEN_EXIBIR TOKEN_PAREN_ESQ argumentos TOKEN_PAREN_DIR TOKEN_TERMINADOR { $$=com_linha(new NoExibir(*$3), @1.first_line, @1.first_column); delete $3; };
-entrada: TOKEN_OBTER TOKEN_PAREN_ESQ TOKEN_TEXTO TOKEN_VIRGULA lista_ids TOKEN_PAREN_DIR TOKEN_TERMINADOR { std::vector<TipoDado> tipos; std::string formato=texto_sem_aspas($3); if(!tipos_do_formato(formato,tipos)||tipos.size()!=$5->size()){ delete $5; diagnostico::emitir("semantic error", @1.first_line, @1.first_column, 1, "obter exige especificadores válidos e uma variável para cada especificador"); YYERROR; } $$=com_linha(new NoObter(formato,*$5,tipos), @1.first_line, @1.first_column); delete $5; };
+entrada: TOKEN_OBTER TOKEN_PAREN_ESQ TOKEN_TEXTO TOKEN_VIRGULA lista_ids TOKEN_PAREN_DIR TOKEN_TERMINADOR { std::vector<TipoDado> tipos; std::string formato=texto_sem_aspas($3); if(!tipos_do_formato(formato,tipos)||tipos.size()!=$5->size()){ delete $5; diagnostico::emitir("semantic error", @1.first_line, @1.first_column, 1, "obter exige especificadores válidos e uma variável para cada especificador", "parser: parser.y:81: validação semântica dos especificadores de formato de obter"); YYERROR; } $$=com_linha(new NoObter(formato,*$5,tipos), @1.first_line, @1.first_column); delete $5; };
 condicional: TOKEN_SE TOKEN_PAREN_ESQ expressao TOKEN_PAREN_DIR bloco senao_opcional { $$=com_linha(new NoCondicional($3,$5,$6), @1.first_line, @1.first_column); };
 senao_opcional: /* vazio */ { $$=0; } | TOKEN_SENAO bloco { $$=$2; } | encadeamento_ou { $$=$1; };
 encadeamento_ou:
@@ -124,5 +124,6 @@ expressao:
 void yyerror(const char *s) {
     if (!erro_lexico)
         diagnostico::emitir("syntax error", yylloc.first_line, yylloc.first_column, 1,
-                            "token inesperado ou ausente; verifique a sintaxe desta instrução", s);
+                            "token inesperado ou ausente; verifique a sintaxe desta instrução",
+                            std::string("parser: parser.y:126 (yyerror): ") + s);
 }

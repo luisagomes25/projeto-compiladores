@@ -30,6 +30,12 @@ esperar_erro() {
     categoria=$2
     linha=$3
     esperado=$4
+    case $categoria in
+        "syntax error") nota_esperada='^note: parser: parser.y:[0-9]+ \(yyerror\): syntax error, ' ;;
+        "semantic error") nota_esperada='^note: parser: parser.y:[0-9]+:' ;;
+        "lexical error") nota_esperada='^note: lexer: lexer.l:[0-9]+:' ;;
+        "runtime error") nota_esperada='^note: runtime: ast.cpp:[0-9]+:' ;;
+    esac
     if "$BIN" --debug "$CASOS/$caso" >"$TMP_DIR/saida" 2>"$TMP_DIR/erro"; then
         echo "FAIL: $caso (deveria falhar)"
         cat "$TMP_DIR/saida" "$TMP_DIR/erro"
@@ -37,6 +43,8 @@ esperar_erro() {
     elif grep -Fq "$esperado" "$TMP_DIR/erro" \
         && grep -Fq "$CASOS/$caso:$linha:" "$TMP_DIR/erro" \
         && grep -Fq ": error: $categoria:" "$TMP_DIR/erro" \
+        && grep -Eq "$nota_esperada" "$TMP_DIR/erro" \
+        && ! grep -Fq "note: $esperado" "$TMP_DIR/erro" \
         && grep -Fq "| " "$TMP_DIR/erro" \
         && grep -Fq "^" "$TMP_DIR/erro"; then
         echo "PASS: $caso (erro esperado)"

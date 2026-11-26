@@ -39,7 +39,18 @@ void diagnostico::emitir(const std::string& categoria, int linha, int coluna, in
     if (linha > 0 && coluna > 0) std::cerr << ':' << coluna;
     std::cerr << ": error: " << categoria << ": " << mensagem << '\n';
 
-    if (linha <= 0) return;
+    auto emitir_nota_debug = [&]() {
+        if (!modo_debug) return;
+        if (!detalhe_debug.empty())
+            std::cerr << "note: " << detalhe_debug << '\n';
+        else
+            std::cerr << "note: " << categoria << ": detalhe interno indisponível\n";
+    };
+
+    if (linha <= 0) {
+        emitir_nota_debug();
+        return;
+    }
 
     std::ifstream fonte(arquivo_fonte);
     std::string texto;
@@ -62,9 +73,7 @@ void diagnostico::emitir(const std::string& categoria, int linha, int coluna, in
                   << std::string(std::max(0, coluna - 1), ' ')
                   << std::string(std::max(1, extensao), '^') << '\n';
     }
-
-    if (modo_debug && !detalhe_debug.empty())
-        std::cerr << "note: parser: " << detalhe_debug << '\n';
+    emitir_nota_debug();
 }
 
 void diagnostico::erro_de_argumentos(const std::string& mensagem) {
